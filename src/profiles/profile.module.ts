@@ -15,9 +15,9 @@ import { EnrichedController } from './enriched/enriched.controller';
 import { YouTubeEnricher } from './enriched/youtube.enricher';
 import { SentimentAnalyzer } from './enriched/sentiment.utils';
 
-import { UserProfile } from './user/user.entity';
-import { UserProfileService } from './user/user.service';
-import { UserProfileController } from './user/user.controller';
+import { LlmProfile } from './llm/llm.entity';
+import { LlmProfileService } from './llm/llm.service';
+import { LlmProfileController } from './llm/llm.controller';
 
 import { UsersModule } from '../users/user.module';
 import { CacheModule } from '../cache/cache.module';
@@ -28,7 +28,7 @@ import { CacheModule } from '../cache/cache.module';
       RawProfile,
       DirectProfile,
       EnrichedProfile,
-      UserProfile,
+      LlmProfile,
     ]),
     UsersModule,
     ConfigModule,
@@ -40,19 +40,19 @@ import { CacheModule } from '../cache/cache.module';
     EnrichedService,
     YouTubeEnricher,
     SentimentAnalyzer,
-    UserProfileService,
+    LlmProfileService,
   ],
   controllers: [
     RawController,
     DirectController,
     EnrichedController,
-    UserProfileController,
+    LlmProfileController,
   ],
   exports: [
     RawService,
     DirectService,
     EnrichedService,
-    UserProfileService,
+    LlmProfileService,
   ],
 })
 export class ProfileModule {}

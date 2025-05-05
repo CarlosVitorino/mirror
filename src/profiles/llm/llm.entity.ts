@@ -8,7 +8,7 @@ import {
 import { EnrichedProfile } from '../enriched/enriched.entity';
 
 @Entity()
-export class UserProfile {
+export class LlmProfile {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 

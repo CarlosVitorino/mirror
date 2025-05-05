@@ -1,4 +1,3 @@
-// src/profiles/user/user.service.ts
 // -----------------------------------------------------------------------------
 // High‑level overview
 // -----------------------------------------------------------------------------
@@ -20,7 +19,7 @@ import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { subDays, differenceInCalendarDays } from 'date-fns';
 
-import { UserProfile } from './user.entity';
+import { LlmProfile } from './llm.entity';
 import { EnrichedProfile } from '../enriched/enriched.entity';
 
 // -----------------------------------------------------------------------------
@@ -42,7 +41,7 @@ type InsightPayload = {
     visualMetaphor?: string;                          // optional short description
 };
 
-type PublicProfile = Omit<UserProfile, 'enrichedProfile'>;
+type PublicProfile = Omit<LlmProfile, 'enrichedProfile'>;
 
 
 interface FrameStats {
@@ -143,13 +142,13 @@ Format rules:
 // -----------------------------------------------------------------------------
 
 @Injectable()
-export class UserProfileService {
+export class LlmProfileService {
   private readonly openai: OpenAI;
-  private readonly logger = new Logger(UserProfileService.name);
+  private readonly logger = new Logger(LlmProfileService.name);
 
   constructor(
-    @InjectRepository(UserProfile)
-    private readonly repo: Repository<UserProfile>,
+    @InjectRepository(LlmProfile)
+    private readonly repo: Repository<LlmProfile>,
     private readonly config: ConfigService,
   ) {
     this.openai = new OpenAI({ apiKey: this.config.get('OPENAI_API_KEY') });
