@@ -1,0 +1,44 @@
+{
+  "name": "mirror-server",
+  "version": "1.0.0",
+  "description": "Data profiling app with privacy by design",
+  "main": "dist/main.js",
+  "scripts": {
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "start:debug": "nest start --watch --debug",
+    "build": "nest build"
+  },
+  "dependencies": {
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/jwt": "^11.0.0",
+    "@nestjs/passport": "^11.0.5",
+    "@nestjs/platform-express": "^11.1.0",
+    "@nestjs/typeorm": "^11.0.0",
+    "axios": "^1.9.0",
+    "bcryptjs": "^3.0.2",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2",
+    "csv-parse": "^5.6.0",
+    "date-fns": "^4.1.0",
+    "dotenv": "^16.5.0",
+    "fs-extra": "^11.3.0",
+    "googleapis": "^148.0.0",
+    "openai": "^4.97.0",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "pg": "^8.15.6",
+    "reflect-metadata": "^0.2.2",
+    "sentiment": "^5.0.2",
+    "typeorm": "^0.3.22"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^10.0.0",
+    "@types/csv-parse": "^1.2.5",
+    "@types/multer": "^1.4.12",
+    "@types/passport-jwt": "^4.0.1",
+    "@types/sentiment": "^5.0.4",
+    "multer": "^1.4.5-lts.2",
+    "typescript": "^5.0.4"
+  }
+}

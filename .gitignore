@@ -1,0 +1,46 @@
+# dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+
+# IDE
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# compiled output
+/dist
+/build
+/tmp
+/out-tsc
+
+# logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# environment
+.env
+.env.*
+!.env.example
+
+# testing
+/coverage
+/.nyc_output
+
+# nest
+.nest/
+
+# misc
+.npm
+.eslintcache
+*.tsbuildinfo
