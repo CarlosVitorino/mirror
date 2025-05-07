@@ -1,58 +1,110 @@
+// src/modules/profile.module.ts
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
-import { RawProfile } from './raw/raw.entity';
-import { RawService } from './raw/raw.service';
-import { RawController } from './raw/raw.controller';
 
-import { DirectProfile } from './direct/direct.entity';
-import { DirectService } from './direct/direct.service';
-import { DirectController } from './direct/direct.controller';
+import { DigestEntity }   from '../core/digest/digest.entity';
+import { DirectEntity }   from '../stages/direct/direct.entity';
+import { EnrichedEntity } from '../stages/enriched/enriched.entity';
+import { LlmEntity } from '../stages/llm/llm.entity';
 
-import { EnrichedProfile } from './enriched/enriched.entity';
-import { EnrichedService } from './enriched/enriched.service';
-import { EnrichedController } from './enriched/enriched.controller';
-import { YouTubeEnricher } from './enriched/youtube.enricher';
-import { SentimentAnalyzer } from './enriched/sentiment.utils';
+import { DirectStageService }   from '../stages/direct/direct.service';
+import { EnrichedStageService } from '../stages/enriched/enriched.service';
+import { LlmStageService } from '../stages/llm/llm.service';
 
-import { LlmProfile } from './llm/llm.entity';
-import { LlmProfileService } from './llm/llm.service';
-import { LlmProfileController } from './llm/llm.controller';
+import { DirectStageController }   from '../stages/direct/direct.controller';
+import { EnrichedStageController } from '../stages/enriched/enriched.controller';
+import { LlmStageController } from '../stages/llm/llm.controller';
 
-import { UsersModule } from '../users/user.module';
-import { CacheModule } from '../cache/cache.module';
+import { YoutubeDirectTransformer }   from '../core/transform/direct/youtube-direct.transformer';
+import { YoutubeEnrichedTransformer } from '../core/transform/enriched/youtube-enriched.transformer';
+import { YoutubeLlmTransformer } from '../core/transform/llm/youtube-llm.transformer';
+import { OpenAIUtil } from '../core/transform/llm/utils/openai-util';
+import { YoutubeApi }                 from '../core/transform/enriched/utils/youtube-api.adapter';
+
+import { UsersModule }    from '../users/user.module';
+import { CacheModule }    from '../cache/cache.module';
+import { CacheService }   from '../cache/cache.service';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      RawProfile,
-      DirectProfile,
-      EnrichedProfile,
-      LlmProfile,
-    ]),
+    TypeOrmModule.forFeature([DigestEntity, DirectEntity, EnrichedEntity, LlmEntity]),
     UsersModule,
-    ConfigModule,
     CacheModule,
+    ConfigModule,
   ],
-  providers: [
-    RawService,
-    DirectService,
-    EnrichedService,
-    YouTubeEnricher,
-    SentimentAnalyzer,
-    LlmProfileService,
-  ],
+
   controllers: [
-    RawController,
-    DirectController,
-    EnrichedController,
-    LlmProfileController,
+    DirectStageController,
+    EnrichedStageController,
+    LlmStageController,
   ],
-  exports: [
-    RawService,
-    DirectService,
-    EnrichedService,
-    LlmProfileService,
+
+  providers: [
+    /* ─────────────── DIRECT (STAGE 1) ─────────────── */
+    YoutubeDirectTransformer,
+    {
+      provide: 'DIRECT_TRANSFORMERS',
+      useFactory: (yt: YoutubeDirectTransformer) => [yt],
+      inject: [YoutubeDirectTransformer],
+    },
+    DirectStageService,
+
+    /* ─────────────── ENRICHED (STAGE 2) ────────────── */
+    {
+      // singleton wrapper around googleapis + cache
+      provide: YoutubeApi,
+      useFactory: (cfg: ConfigService, cache: CacheService) => {
+        const apiKey = cfg.get<string>('YOUTUBE_API_KEY');
+        if (!apiKey) {
+          throw new Error('Environment variable YOUTUBE_API_KEY is missing');
+        }
+        if (!cache) {
+          throw new Error('CacheService is not available');
+        }
+        return new YoutubeApi(apiKey, cache);
+      },
+      inject: [ConfigService, CacheService],
+    },
+    {
+      provide: YoutubeEnrichedTransformer,
+      useFactory: (api: YoutubeApi) =>
+        new YoutubeEnrichedTransformer(api),
+      inject: [YoutubeApi],
+    },
+    {
+      provide: 'ENRICHED_TRANSFORMERS',
+      useFactory: (yt: YoutubeEnrichedTransformer) => [yt],
+      inject: [YoutubeEnrichedTransformer],
+    },
+    EnrichedStageService,
+
+    /* ─────────────── LLM (STAGE 3) ───────────────── */
+    // Provide OpenAIUtil using ConfigService
+    {
+      provide: OpenAIUtil,
+      useFactory: (cfg: ConfigService) => {
+        const apiKey = cfg.get<string>('OPENAI_API_KEY');
+        if (!apiKey) throw new Error('OPENAI_API_KEY is missing');
+        return new OpenAIUtil(apiKey);
+      },
+      inject: [ConfigService],
+    },
+
+    // Provide YoutubeLlmTransformer with OpenAIUtil injected
+    {
+      provide: YoutubeLlmTransformer,
+      useFactory: (openaiUtil: OpenAIUtil) => new YoutubeLlmTransformer(openaiUtil),
+      inject: [OpenAIUtil],
+    },
+    {
+      provide: 'LLM_TRANSFORMERS',
+      useFactory: (yt: YoutubeLlmTransformer) => [yt],
+      inject: [YoutubeLlmTransformer],
+    },
+    LlmStageService,
   ],
+
+  exports: [DirectStageService, EnrichedStageService],
 })
 export class ProfileModule {}

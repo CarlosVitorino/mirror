@@ -1,4 +1,4 @@
-import { RawProfile } from '../profiles/raw/raw.entity';
+//import { RawProfile } from '../profiles/raw/raw.entity';
 import { parse } from 'csv-parse/sync';
 
 export interface Level0DTO {
@@ -30,7 +30,7 @@ export function mapTakeoutFiles(files: Express.Multer.File[]): Level0DTO {
   };
 }
 
-export function rawCounts(r: RawProfile) {
+/* export function rawCounts(r: RawProfile) {
   return {
     watch: r.watchHistory.length,
     search: r.searchHistory.length,
@@ -38,3 +38,4 @@ export function rawCounts(r: RawProfile) {
     subs: r.subscriptions?.length ?? 0,
   };
 }
+ */

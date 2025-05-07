@@ -1,3 +1,4 @@
+// src/cache/cache.service.ts
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -7,31 +8,30 @@ import { CacheEntry } from './cache.entity';
 export class CacheService {
   constructor(
     @InjectRepository(CacheEntry)
-    private readonly repo: Repository<CacheEntry>
+    private readonly repo: Repository<CacheEntry>,
   ) {}
 
+  /** read ------------------------------------------------------------------ */
   async get<T = any>(key: string): Promise<T | null> {
-    const entry = await this.repo.findOne({ where: { key } });
-    return entry ? entry.data : null;
+    const row = await this.repo.findOne({ where: { key } });
+    return row ? (row.data as T) : null;
   }
 
+  /** write (atomic) -------------------------------------------------------- */
   async set(key: string, data: any): Promise<void> {
-    const exists = await this.repo.findOne({ where: { key } });
-    if (exists) {
-      exists.data = data as CacheEntry['data'];
-      await this.repo.save(exists);
-    } else {
-      await this.repo.insert({ key, data });
-    }
+    await this.repo.upsert(
+      { key, data },           // row to insert / update
+      ['key'],                 // conflict column(s)
+    );
   }
 
-  async getOrSet<T = any>(key: string, callback: () => Promise<T>): Promise<T> {
+  /** convenience helper ---------------------------------------------------- */
+  async getOrSet<T = any>(key: string, fn: () => Promise<T>): Promise<T> {
     const cached = await this.get<T>(key);
-    if (cached !== null) {
-      return cached;
-    }
-    const result = await callback();
-    await this.set(key, result);
-    return result;
+    if (cached !== null) return cached;
+
+    const fresh = await fn();
+    await this.set(key, fresh);
+    return fresh;
   }
 }
